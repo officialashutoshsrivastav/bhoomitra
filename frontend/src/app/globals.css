@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  /* Motion. `settle` has no overshoot: this is a records system, not a toy. */
+  --ease-settle: cubic-bezier(0.16, 0.84, 0.44, 1);
+  --ease-survey: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --dur-tap: 120ms;
+  --dur-state: 200ms;
+  --dur-panel: 320ms;
+  --dur-enter: 460ms;
+  --dur-draw: 1100ms;
+
+  --header-h: 4.5rem;
+
+  /* Font stacks. Linked in the document head, not fetched at build time. */
+  --font-inter: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", ui-serif, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-paper-50 text-slate-800 antialiased;
+  font-feature-settings: "cv05" 1, "ss03" 1;
+  overflow-x: hidden;
+}
+
+/* Visible keyboard focus everywhere, never a removed outline. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid theme("colors.brand.600");
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: theme("colors.brand.200");
+  color: theme("colors.ink.900");
+}
+
+/* Restrained scrollbars so dense dashboard panels do not look industrial. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme("colors.paper.300") transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: theme("colors.paper.300"); border-radius: 99px; }
+*::-webkit-scrollbar-thumb:hover { background: theme("colors.brand.200"); }
+
+@layer components {
+  /* ---------------------------------------------------------------- *
+   * Buttons
+   * ---------------------------------------------------------------- */
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50;
+    transition: background-color var(--dur-state) var(--ease-settle), color var(--dur-state) var(--ease-settle),
+      border-color var(--dur-state) var(--ease-settle), box-shadow var(--dur-state) var(--ease-settle),
+      transform var(--dur-tap) var(--ease-settle);
+  }
+  .btn:active:not(:disabled) { transform: translateY(1px) scale(0.995); }
+
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+    box-shadow: 0 1px 2px rgba(8, 24, 16, 0.12), 0 6px 16px rgba(15, 95, 58, 0.18);
+  }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 2px 4px rgba(8, 24, 16, 0.14), 0 10px 24px rgba(15, 95, 58, 0.26); }
+
+  .btn-secondary { @apply btn border border-brand-600/30 bg-white text-brand-700 hover:border-brand-600 hover:bg-brand-50; }
+  .btn-ghost { @apply btn text-slate-700 hover:bg-paper-100 hover:text-brand-700; }
+  .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+
+  /* ---------------------------------------------------------------- *
+   * Cards. A card is a record, so it gets a plot boundary rather than
+   * a floating drop shadow.
+   * ---------------------------------------------------------------- */
+  .card {
+    @apply rounded-xl border border-paper-200 bg-white shadow-card;
+    transition: box-shadow var(--dur-state) var(--ease-settle), border-color var(--dur-state) var(--ease-settle),
+      transform var(--dur-state) var(--ease-settle);
+  }
+
+  /* Only cards that go somewhere lift. Content cards stay put. */
+  .card-link { @apply cursor-pointer; }
+  .card-link:hover { @apply border-brand-300 shadow-lift; transform: translateY(-2px); }
+  .card-link:active { transform: translateY(0); }
+
+  /* Survey tick — a corner register mark. Used sparingly, on hero panels. */
+  .card-tick { position: relative; }
+  .card-tick::before,
+  .card-tick::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: theme("colors.brand.400");
+    opacity: 0.5;
+  }
+  .card-tick::before { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
+  .card-tick::after { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+  /* ---------------------------------------------------------------- *
+   * Forms
+   * ---------------------------------------------------------------- */
+  .input {
+    @apply w-full rounded-lg border border-paper-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400;
+    transition: border-color var(--dur-state) var(--ease-settle), box-shadow var(--dur-state) var(--ease-settle);
+  }
+  .input:focus {
+    @apply border-brand-500 outline-none;
+    box-shadow: 0 0 0 3px theme("colors.brand.100");
+  }
+  .input:disabled { @apply cursor-not-allowed bg-paper-100 text-slate-400; }
+
+  .label { @apply mb-1.5 block text-xs font-semibold tracking-wide text-slate-600; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold leading-5; }
+
+  /* ---------------------------------------------------------------- *
+   * Type
+   * ---------------------------------------------------------------- */
+  .page-title { @apply font-display text-display-sm text-navy-800 md:text-display-md; }
+  .page-title em { @apply not-italic text-brand-600; }
+  .prose-body { @apply max-w-[68ch] text-[15px] leading-relaxed text-slate-600; }
+
+  /* ---------------------------------------------------------------- *
+   * Tabs
+   * ---------------------------------------------------------------- */
+  .tab {
+    @apply relative z-10 whitespace-nowrap rounded-t-md px-3.5 py-2.5 text-sm font-medium text-slate-600 hover:text-brand-700;
+    transition: color var(--dur-state) var(--ease-settle);
+  }
+  .tab-active { @apply text-brand-700; }
+
+  /* ---------------------------------------------------------------- *
+   * Tables. Below `md` the head is hidden and each row becomes a
+   * stacked record using the `data-label` on every cell, so dense
+   * dashboard tables stay readable on a phone instead of scrolling
+   * sideways off the screen.
+   * ---------------------------------------------------------------- */
+  .table { @apply w-full text-left text-sm; }
+  .table th { @apply whitespace-nowrap bg-paper-100 px-3 py-2.5 text-xs font-semibold tracking-wide text-slate-600; }
+  .table td { @apply border-t border-paper-200 px-3 py-2.5 align-top; }
+  .table tbody tr { transition: background-color var(--dur-tap) linear; }
+  .table tbody tr:hover { @apply bg-brand-50/50; }
+
+  .table-wrap { @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0; }
+
+  .table-stack thead { @apply sr-only md:not-sr-only; }
+  .table-stack tbody tr {
+    @apply mb-3 block rounded-xl border border-paper-200 bg-white p-3 shadow-card md:mb-0 md:table-row md:rounded-none md:border-0 md:border-t md:bg-transparent md:p-0 md:shadow-none;
+  }
+  .table-stack tbody td { @apply flex items-baseline justify-between gap-4 border-0 px-0 py-1.5 md:table-cell md:border-t md:px-3 md:py-2.5; }
+  .table-stack tbody td::before {
+    content: attr(data-label);
+    @apply shrink-0 text-xs font-semibold text-slate-500 md:hidden;
+  }
+
+  /* A row that just arrived gets one quiet wash, so what changed is visible. */
+  .row-arrived { animation: rowArrive 1400ms var(--ease-settle); }
+
+  /* ---------------------------------------------------------------- *
+   * Section bands
+   * ---------------------------------------------------------------- */
+  .band-paper { @apply bg-paper-100; }
+  .band-grid { @apply bg-survey bg-survey; background-size: 28px 28px; }
+  .rule { @apply h-px w-full bg-gradient-to-r from-transparent via-paper-300 to-transparent; }
+
+  /* Small caps meta line used for provenance, never for headings. */
+  .meta { @apply text-xs text-slate-500; }
+}
+
+@layer utilities {
+  .rail { @apply pointer-events-none absolute; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .mask-fade-r { mask-image: linear-gradient(to right, black 85%, transparent 100%); }
+  .text-balance { text-wrap: balance; }
+}
+
+.maplibregl-ctrl-attrib { font-size: 10px; }
+.maplibregl-popup-content { @apply rounded-lg border border-paper-200 shadow-lift; animation: settleUp var(--dur-panel) var(--ease-settle); }
+
+/* ------------------------------------------------------------------ *
+ * Keyframes
+ * ------------------------------------------------------------------ */
+@keyframes settleUp { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: none; } }
+@keyframes contour { from { transform: scale(0.2); opacity: 0.5; } to { transform: scale(1); opacity: 0; } }
+@keyframes contourSlow { 0% { transform: scale(0.9); opacity: 0.55; } 70%, 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes pingSlow { 0% { transform: scale(1); opacity: 0.6; } 75%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes rowArrive { 0% { background-color: rgba(242, 140, 40, 0.16); } 100% { background-color: transparent; } }
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+.animate-contour { animation: contour 600ms var(--ease-survey) forwards; }
+.animate-contour-slow { transform-origin: center; animation: contourSlow 2600ms var(--ease-survey) infinite; }
+.animate-ping-slow { animation: pingSlow 2200ms var(--ease-survey) infinite; }
+.animate-spin-slow { animation: spinSlow 2400ms linear infinite; }
+.animate-shimmer {
+  background-image: linear-gradient(90deg, rgba(234, 229, 218, 0) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(234, 229, 218, 0) 100%);
+  animation: shimmer 1600ms linear infinite;
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion — required for GIGW / WCAG 2.1 (2.3.3).
+ * Everything collapses to its end state; nothing is hidden.
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card-link:hover, .btn:active:not(:disabled) { transform: none; }
+  .animate-contour, .animate-contour-slow, .animate-ping-slow, .animate-shimmer, .animate-spin-slow { animation: none !important; }
+  .animate-shimmer { background-image: none; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}

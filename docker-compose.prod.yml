@@ -1,0 +1,30 @@
+# Production overlay:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Supply real secrets through the environment or a secrets manager — never commit them.
+services:
+  backend:
+    restart: always
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      LOG_JSON: "true"
+      DEMO_DATA_ENABLED: "false"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY}
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
+      BOOTSTRAP_SUPERADMIN_EMAIL: ${BOOTSTRAP_SUPERADMIN_EMAIL:?}
+      BOOTSTRAP_SUPERADMIN_PASSWORD: ${BOOTSTRAP_SUPERADMIN_PASSWORD:?}
+    ports: []
+  worker:
+    restart: always
+    environment:
+      APP_ENV: production
+      LOG_JSON: "true"
+  frontend:
+    restart: always
+    ports: []
+  postgis:
+    restart: always
+    ports: []
+  redis:
+    restart: always
+    ports: []
