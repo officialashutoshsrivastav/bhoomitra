@@ -68,6 +68,7 @@ def health():
 
 
 @router.get("/health/live")
+@router.head("/health/live")
 def live():
     return {"status": "alive"}
 
