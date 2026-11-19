@@ -16,4 +16,4 @@ USER app
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fsS http://localhost:8000/health/live || exit 1
-CMD ["sh", "-c", "echo 'Starting database migrations...' && alembic upgrade head && echo 'Migrations completed. Starting API...' && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "echo 'Starting database migrations...' && alembic upgrade head && echo 'Running database seeder...' && python scripts/seed.py && echo 'Starting API...' && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
